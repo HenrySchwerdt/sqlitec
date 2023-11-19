@@ -1,5 +1,6 @@
 #ifndef console_h
 #define console_h
+#include "../parser/parser.h"
 #include "../error/error.h"
 #include "../parser/parser.h"
 #include <stdlib.h>

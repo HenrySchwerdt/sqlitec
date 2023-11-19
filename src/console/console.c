@@ -1,5 +1,6 @@
 #include "console.h"
 
+static Parser* parser;
 
 Console* new_console() {
     Console* console = (Console*)malloc(sizeof(Console));
@@ -35,18 +36,12 @@ static void read_input(Console* console) {
 }
 
 void start(Console* console, CommandCallback callback) {
+    parser = new_parser();
     print_welcome();
     while (true) {
         print_prompt();
         read_input(console);
-        Command command;
-        if (strcmp(console->buffer, ".exit") == 0) {
-            command.type = EXIT;
-            command.data.exitCommand.code = 0;
-        } else {
-            command.type = UNKNOWN;
-            command.data.unknownCommand.command = console->buffer;
-        }
+        Command command = parse_line(parser, console->buffer);
         callback(command);
-  }
+    }
 }
