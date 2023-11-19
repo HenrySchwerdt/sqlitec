@@ -1,5 +1,7 @@
 #ifndef error_h
 #define error_h
+#include <stdlib.h>
+#include <string.h>
 
 typedef enum {
     CRITICAL,
@@ -13,5 +15,7 @@ typedef struct {
 } Error;
 
 Error* new_error(ErrorType type, char* message);
+
+void free_error(Error* error);
 
 #endif

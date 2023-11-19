@@ -4,7 +4,7 @@
 
 void should_create_error(void) {
     // when
-    // Error* error = new_error(CRITICAL, "some_error");
+    Error* error = new_error(CRITICAL, "some_error");
     // then
-    TEST_CHECK(CRITICAL == CRITICAL);
+    TEST_CHECK(error->type == CRITICAL);
 }

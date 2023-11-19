@@ -9,6 +9,7 @@ target("sqlitec")
 target("test")
     set_kind("binary")
     add_files("test/*.c")
+    add_files("src/**/*.c")
     add_files("src/*.c")
     remove_files("src/main.c")
 
