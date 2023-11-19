@@ -2,12 +2,17 @@
 #define parser_h
 
 typedef enum {
+    UNKNOWN,
     QUERY,
     INSERT,
     UPDATE,
     DELETE,
     EXIT
 } CommandType;
+
+typedef struct {
+    char* command;
+} UnknownCommand;
 
 typedef struct {
     int code;
@@ -31,13 +36,13 @@ typedef struct {
 
 typedef struct {
     CommandType type;
-    union data
-    {
+    union {
         QueryCommand queryCommand;
         InsertCommand insertCommand;
         UpdateCommand updateCommand;
         DeleteCommand deleteCommand;
         ExitCommand exitCommand;
-    };
+        UnknownCommand unknownCommand;
+    } data;
 } Command;
 #endif
