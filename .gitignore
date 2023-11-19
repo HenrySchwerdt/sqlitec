@@ -1,0 +1,13 @@
+.vscode
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/CMakeScripts/
+/CMakeTmp/
+
+/bin/
+/*.exe
+/*.out
+.xmake
+*.swp
+*~
