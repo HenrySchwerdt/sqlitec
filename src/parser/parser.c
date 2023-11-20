@@ -104,7 +104,15 @@ static Command parse_update_command(ParseData* data) {
 static Command parse_insert_command(ParseData* data) {
     Command cmd;
     cmd.type = INSERT;
-    cmd.data.insertCommand.code = 5;
+    advance(data); // skip ' ' need to code that better later
+    Row row;
+    int args_assigned = sscanf(&(data->line[data->cur]), "%d %s %s", &(row.id), row.username, row.email);
+    if (args_assigned < 3) {
+        cmd.type = PARSE_ERROR;
+        cmd.data.errorCommand.error = "Expect three fields <int> <string> <string>";
+        return cmd;
+    }
+    cmd.data.insertCommand.to_insert = row;
     return cmd;
 }
 

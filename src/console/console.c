@@ -4,7 +4,7 @@ static void print_welcome() {
     printf("Welcome to %s.\nThis program is written by %s and is in version %s.\n", PROGRAM, AUTHOR, VERSION);
 }
 
-static void print_prompt() { printf("db > "); }
+static void print_prompt() { printf("%sdb > %s", GRN, CRESET); }
 
 static ParseData* read_input() {
     ParseData* parse_data = malloc(sizeof(ParseData));
@@ -24,13 +24,18 @@ static ParseData* read_input() {
     return parse_data;
 }
 
-void start(CommandCallback callback) {
+void start(CommandCallback callback, Table* table) {
     print_welcome();
     while (true) {
         print_prompt();
         ParseData* parse_data = read_input();
         Command command = parse_line(parse_data);
-        callback(command);
+        if (command.type == PARSE_ERROR) {
+            printf("%s\n", command.data.errorCommand.error);
+            free(parse_data);
+            continue;
+        }
+        callback(command, table);
         free(parse_data);
     }
 }

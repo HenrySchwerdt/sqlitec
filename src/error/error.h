@@ -6,7 +6,8 @@
 typedef enum {
     CRITICAL,
     ERROR,
-    WARN
+    WARN,
+    NONE,
 } ErrorType;
 
 typedef struct {

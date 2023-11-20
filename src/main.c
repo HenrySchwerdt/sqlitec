@@ -3,19 +3,57 @@
 #include <stdbool.h>
 #include <string.h>
 #include "console/console.h"
+#include "error/error.h"
 #include "parser/parser.h"
+#include "table/table.h"
 
-Error handler(Command command) {
+Error execute_insert(InsertCommand command, Table *table)
+{
+    Error err;
+    if (table->num_rows >= TABLE_MAX_ROWS)
+    {
+       
+        err.type = CRITICAL;
+        err.message = "Table is full";
+        return err;
+    }
+
+    Row *row_to_insert = &(command.to_insert);
+
+    serialize_row(row_to_insert, row_slot(table, table->num_rows));
+    table->num_rows += 1;
+    err.type = NONE;
+    return err;
+}
+
+Error execute_select(SelectCommand command, Table* table) {
+  Error err;
+  Row row;
+  for (uint32_t i = 0; i < table->num_rows; i++) {
+     deserialize_row(row_slot(table, i), &row);
+     print_row(&row);
+  }
+  err.type = NONE;
+  return err;
+}
+
+Error handler(Command command, Table *table)
+{
     switch (command.type)
     {
     case EXIT:
         exit(command.data.exitCommand.code);
         break;
     case SELECT:
-        printf("You ran a select command with code: %d\n", command.data.selectCommand.code);
+        execute_select(command.data.selectCommand, table);
         break;
     case INSERT:
-        printf("You ran a insert command with code: %d\n", command.data.selectCommand.code);
+        execute_insert(command.data.insertCommand, table);
+        // if (err.type == NONE) {
+        //     printf("inserted 1 item.\n");
+        // } else {
+        //     return err;
+        // }
         break;
     case UPDATE:
         printf("You ran a update command with code: %d\n", command.data.selectCommand.code);
@@ -38,6 +76,9 @@ Error handler(Command command) {
     }
 }
 
-int main(int argc, char* argv[]) {
-    start(handler);
+int main(int argc, char *argv[])
+{
+    Table *table = new_table();
+    start(handler, table);
+    free_table(table);
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../table/table.h"
 typedef enum {
     UNKNOWN,
     SELECT,
@@ -13,6 +14,7 @@ typedef enum {
     TABLES,
     SCHEMA,
     EXIT,
+    PARSE_ERROR,
 } CommandType;
 
 typedef struct {
@@ -24,7 +26,7 @@ typedef struct {
 } SelectCommand;
 
 typedef struct {
-    int code;
+    Row to_insert;
 } InsertCommand;
 
 typedef struct {
@@ -52,6 +54,10 @@ typedef struct {
 } SchemaCommand;
 
 typedef struct {
+    char* error;
+} ErrorCommand;
+
+typedef struct {
     CommandType type;
     union {
         SelectCommand selectCommand;
@@ -63,6 +69,7 @@ typedef struct {
         OpenCommand openCommand;
         SchemaCommand schemaCommand;
         UnknownCommand unknownCommand;
+        ErrorCommand errorCommand;
     } data;
 } Command;
 
