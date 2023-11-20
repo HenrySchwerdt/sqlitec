@@ -24,6 +24,27 @@ static ParseData* read_input() {
     return parse_data;
 }
 
+static void print_error(Error error) {
+    switch (error.type)
+    {
+    case CRITICAL:
+        printf("%s[critical]:%s ", BMAG, CRESET);
+        break;
+    case ERROR:
+        printf("%s[error]:%s ", BRED, CRESET);
+        break;
+    case WARN: 
+        printf("%s[warn]:%s ", BYEL, CRESET);
+        break;
+    }
+    printf("%s\n", error.message);
+}
+
+static void print_info(Info info) {
+    printf("%s[info]:%s ", BGRN, CRESET);
+    printf("%s\n", info.message);
+}
+
 void start(CommandCallback callback, Table* table) {
     print_welcome();
     while (true) {
@@ -35,7 +56,13 @@ void start(CommandCallback callback, Table* table) {
             free(parse_data);
             continue;
         }
-        callback(command, table);
+        Result* result = callback(command, table);
+        if (result->type == INFO) {
+            print_info(result->data.info);
+        } else {
+            print_error(result->data.error);
+        }
+        free_result(result);
         free(parse_data);
     }
 }

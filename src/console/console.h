@@ -86,7 +86,7 @@
 #define COLOR_RESET "\e[0m"
 
 
-typedef Error *(CommandCallback)(Command, Table*);
+typedef Error* *(CommandCallback)(Command, Table*);
 
 void start(CommandCallback callback, Table* table);
 

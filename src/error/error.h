@@ -7,7 +7,6 @@ typedef enum {
     CRITICAL,
     ERROR,
     WARN,
-    NONE,
 } ErrorType;
 
 typedef struct {
@@ -15,8 +14,28 @@ typedef struct {
     char* message;
 } Error;
 
-Error* new_error(ErrorType type, char* message);
+typedef struct {
+    char* message;
+} Info;
 
-void free_error(Error* error);
+typedef enum {
+    INFO,
+    FAILURE
+} ResultType;
+
+typedef union {
+    Error error;
+    Info info;
+} ResultData;
+
+typedef struct {
+    ResultType type;
+    ResultData data;
+   
+} Result;
+
+Result* new_result(ResultType type, ResultData data);
+
+void free_result(Result* error);
 
 #endif

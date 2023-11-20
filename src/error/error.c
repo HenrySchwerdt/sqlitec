@@ -1,17 +1,15 @@
 #include "error.h"
 
-Error* new_error(ErrorType type, char* message) {
-    Error* error = (Error*)malloc(sizeof(Error));
-    if (error != NULL) {
-        error->type = type;
-        error->message = message;
-    }
-    return error;
+Result* new_result(ResultType type, ResultData data) {
+    Result* result = malloc(sizeof(Result));
+    result->type = type;
+    result->data.info = data.info;
+    result->data.error = data.error;
+    return result;
 }
 
-void free_error(Error* error) {
-    if (error != NULL) {
-        free(error->message);
-        free(error);
+void free_result(Result* result) {
+    if (result != NULL) {
+        free(result);
     }
 }

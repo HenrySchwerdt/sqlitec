@@ -7,37 +7,35 @@
 #include "parser/parser.h"
 #include "table/table.h"
 
-Error execute_insert(InsertCommand command, Table *table)
+Result* execute_insert(InsertCommand command, Table *table)
 {
-    Error err;
     if (table->num_rows >= TABLE_MAX_ROWS)
     {
-       
-        err.type = CRITICAL;
-        err.message = "Table is full";
-        return err;
+        ResultData data = { .error= { .type = CRITICAL, .message = "table is full."}};
+        return new_result(FAILURE, data);
     }
 
     Row *row_to_insert = &(command.to_insert);
 
     serialize_row(row_to_insert, row_slot(table, table->num_rows));
     table->num_rows += 1;
-    err.type = NONE;
-    return err;
+    ResultData data = { .info = { .message = "added 1 entry."}};
+    return new_result(INFO, data);
 }
 
-Error execute_select(SelectCommand command, Table* table) {
-  Error err;
-  Row row;
-  for (uint32_t i = 0; i < table->num_rows; i++) {
-     deserialize_row(row_slot(table, i), &row);
-     print_row(&row);
-  }
-  err.type = NONE;
-  return err;
+Result* execute_select(SelectCommand command, Table* table) {
+    Row row;
+    for (uint32_t i = 0; i < table->num_rows; i++) {
+        deserialize_row(row_slot(table, i), &row);
+        print_row(&row);
+    }
+    char msg[200];
+    sprintf(msg, "found %s%d %s entries.", BGRN, table->num_rows, CRESET);
+    ResultData data = { .info = { .message = msg}};
+    return new_result(INFO, data);
 }
 
-Error handler(Command command, Table *table)
+Result* handler(Command command, Table *table)
 {
     switch (command.type)
     {
@@ -45,16 +43,9 @@ Error handler(Command command, Table *table)
         exit(command.data.exitCommand.code);
         break;
     case SELECT:
-        execute_select(command.data.selectCommand, table);
-        break;
+        return execute_select(command.data.selectCommand, table);
     case INSERT:
-        execute_insert(command.data.insertCommand, table);
-        // if (err.type == NONE) {
-        //     printf("inserted 1 item.\n");
-        // } else {
-        //     return err;
-        // }
-        break;
+        return execute_insert(command.data.insertCommand, table);
     case UPDATE:
         printf("You ran a update command with code: %d\n", command.data.selectCommand.code);
         break;
@@ -70,9 +61,13 @@ Error handler(Command command, Table *table)
     case SCHEMA:
         printf("You ran a schema command with code: %d\n", command.data.selectCommand.code);
         break;
-    default:
-        printf("Unkown command '%s'.\n", command.data.unknownCommand.command);
-        break;
+    default:{
+        char msg[200];
+        sprintf(msg, "unkown command '%s%s%s'.", BRED, command.data.unknownCommand.command, CRESET);
+        ResultData data = {.error = {.type = WARN, .message = msg}};
+        return new_result(FAILURE, data);
+    }
+       
     }
 }
 
