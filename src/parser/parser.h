@@ -1,10 +1,11 @@
 #ifndef parser_h
 #define parser_h
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 typedef enum {
     UNKNOWN,
-    QUERY,
+    SELECT,
     INSERT,
     UPDATE,
     DELETE,
@@ -20,7 +21,7 @@ typedef struct {
 
 typedef struct {
     int code;
-} QueryCommand;
+} SelectCommand;
 
 typedef struct {
     int code;
@@ -39,25 +40,43 @@ typedef struct {
 } ExitCommand;
 
 typedef struct {
+    int code;
+} TablesCommand;
+
+typedef struct {
+    int code;
+} OpenCommand;
+
+typedef struct {
+    int code;
+} SchemaCommand;
+
+typedef struct {
     CommandType type;
     union {
-        QueryCommand queryCommand;
+        SelectCommand selectCommand;
         InsertCommand insertCommand;
         UpdateCommand updateCommand;
         DeleteCommand deleteCommand;
         ExitCommand exitCommand;
+        TablesCommand tablesCommand;
+        OpenCommand openCommand;
+        SchemaCommand schemaCommand;
         UnknownCommand unknownCommand;
     } data;
 } Command;
 
+
+
 typedef struct {
-    int cur;
     char* line;
-} Parser;
+    int buffer_length;
+    int input_length;
+    int cur;
+} ParseData;
 
-Parser* new_parser();
 
-void free_parser(Parser* parser);
 
-Command parse_line(Parser* parser, char* line);
+
+Command parse_line(ParseData* data);
 #endif

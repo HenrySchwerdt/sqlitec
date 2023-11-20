@@ -1,26 +1,17 @@
 #include "parser.h"
-Parser* new_parser() {
-    Parser* parser = malloc(sizeof(Parser));
-    parser->cur = 0;
-    parser->line = NULL;
-}
 
-void free_parser(Parser* parser) {
-   free(parser);
-}
-
-static char advance(Parser* parser) {
-    char current = parser->line[parser->cur];
-    parser->cur++;
+static char advance(ParseData* data) {
+    char current = data->line[data->cur];
+    data->cur++;
     return current;
 }
 
-static char current(Parser* parser) {
-    return parser->line[parser->cur];
+static char current(ParseData* data) {
+    return data->line[data->cur];
 }
 
-static char peek(Parser* parser) {
-    return parser->line[parser->cur+1];
+static char peek(ParseData* data) {
+    return data->line[data->cur+1];
 }
 
 static Command create_unkown_command(char* command) {
@@ -31,48 +22,132 @@ static Command create_unkown_command(char* command) {
 }
 
 
-static CommandType parse_dot_command_type(Parser* parser) {
-    if (strncmp(&(parser->line[parser->cur]), "open", 5) == 0)
+static CommandType get_command_type(ParseData* data) {
+    size_t len = strlen(data->line);
+    if (len >= 5 && strncmp(data->line, ".open", 5) == 0) {
+        data->cur += 5;
         return OPEN;
-    if (strncmp(&(parser->line[parser->cur]), "tables", 7) == 0)
+    }
+        
+    if (len >= 7 && strncmp(data->line, ".tables", 7) == 0) {
+        data->cur += 7;
         return TABLES;
-    if (strncmp(&(parser->line[parser->cur]), "schema", 7) == 0)
+    }
+        
+    if (len >= 7 && strncmp(data->line, ".schema", 7) == 0) {
+        data->cur += 7;
         return SCHEMA;
-    if (strncmp(&(parser->line[parser->cur]), "exit", 5) == 0)
+    }
+       
+    if (len >= 5 && strncmp(data->line, ".exit", 5) == 0) {
+        data->cur += 5;
         return EXIT;
+    }
+
+    if (len >= 6 && strncmp(data->line, "insert", 6) == 0) {
+        data->cur += 6;
+        return INSERT;
+    }
+        
+    if (len >= 6 && strncmp(data->line, "select", 6) == 0) {
+        data->cur += 6;
+        return SELECT;
+    }
+        
+    if (len >= 6 && strncmp(data->line, "update", 6) == 0) {
+        data->cur += 6;
+        return UPDATE;
+    }
+
+    if (len >= 6 && strncmp(data->line, "delete", 6) == 0) {
+        data->cur += 6;
+        return DELETE;
+    }
     return UNKNOWN;
 }
 
-static Command parse_dot_command(Parser* parser) {
-    advance(parser);
+static Command parse_open_command(ParseData* data) {
     Command cmd;
-    cmd.type = parse_dot_command_type(parser);
-    if (cmd.type == UNKNOWN) {
-        cmd.data.unknownCommand.command = parser->line;
-    }
-    if (cmd.type == EXIT) {
-        cmd.data.exitCommand.code = 0;
-    }
+    cmd.type = OPEN;
+    cmd.data.openCommand.code = 1;
     return cmd;
 }
 
-static Command parse_where_command(Parser* parser) {
+static Command parse_tables_command(ParseData* data) {
     Command cmd;
+    cmd.type = TABLES;
+    cmd.data.tablesCommand.code = 2;
     return cmd;
 }
 
-static Command parse_command(Parser* parser) {
-    if (current(parser) == '.') {
-        return parse_dot_command(parser);
-    } else if (strncmp(parser->line, "WHERE", 6) == 0) {
-        return parse_where_command(parser);
-    } else {
-        return create_unkown_command(parser->line);
+static Command parse_schema_command(ParseData* data) {
+    Command cmd;
+    cmd.type = SCHEMA;
+    cmd.data.schemaCommand.code = 3;
+    return cmd;
+}
+
+static Command parse_exit_command(ParseData* data) {
+    Command cmd;
+    cmd.type = EXIT;
+    cmd.data.exitCommand.code = 0;
+    return cmd;
+}
+
+static Command parse_update_command(ParseData* data) {
+    Command cmd;
+    cmd.type = UPDATE;
+    cmd.data.updateCommand.code = 4;
+    return cmd;
+}
+
+static Command parse_insert_command(ParseData* data) {
+    Command cmd;
+    cmd.type = INSERT;
+    cmd.data.insertCommand.code = 5;
+    return cmd;
+}
+
+static Command parse_select_command(ParseData* data) {
+    Command cmd;
+    cmd.type = SELECT;
+    cmd.data.selectCommand.code = 6;
+    return cmd;
+}
+
+static Command parse_delete_command(ParseData* data) {
+    Command cmd;
+    cmd.type = DELETE;
+    cmd.data.deleteCommand.code = 7;
+    return cmd;
+}
+
+static Command parse_command(ParseData* data) {
+    CommandType command_type = get_command_type(data);
+    switch (command_type)
+    {
+    case OPEN:
+        return parse_open_command(data);
+    case TABLES:
+        return parse_tables_command(data);
+    case SCHEMA:
+        return parse_schema_command(data);
+    case EXIT:
+        return parse_exit_command(data);
+    case INSERT:
+        return parse_insert_command(data);
+    case SELECT:
+        return parse_select_command(data);
+    case UPDATE:
+        return parse_update_command(data);
+    case DELETE:
+        return parse_delete_command(data);
+    default: 
+        return create_unkown_command(data->line);
     }
 }
 
-Command parse_line(Parser* parser, char* line) {
-    parser->line = line;
-    parser->cur = 0;
-    return parse_command(parser);
+Command parse_line(ParseData* data) {
+    Command cmd = parse_command(data);
+    return cmd;
 }
