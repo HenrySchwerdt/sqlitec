@@ -9,7 +9,9 @@
 
 Result* execute_insert(InsertCommand command, Table *table)
 {
-    if (table->num_rows >= TABLE_MAX_ROWS)
+    void* node = get_page(table->pager, table->root_page_num);
+
+    if ((*leaf_node_num_cells(node) >= LEAF_NODE_MAX_CELLS))
     {
         ResultData data = { .error= { .type = CRITICAL, .message = "table is full."}};
         return new_result(FAILURE, data);
@@ -17,20 +19,26 @@ Result* execute_insert(InsertCommand command, Table *table)
 
     Row *row_to_insert = &(command.to_insert);
 
-    serialize_row(row_to_insert, row_slot(table, table->num_rows));
-    table->num_rows += 1;
+    Cursor* cursor = table_end(table);
+    leaf_node_insert(cursor, row_to_insert->id, row_to_insert);
+    free(cursor);
     ResultData data = { .info = { .message = "added 1 entry."}};
     return new_result(INFO, data);
 }
 
 Result* execute_select(SelectCommand command, Table* table) {
+    Cursor* cursor = table_start(table);
     Row row;
-    for (uint32_t i = 0; i < table->num_rows; i++) {
-        deserialize_row(row_slot(table, i), &row);
+    int num_entries = 0;
+    while(!(cursor->end_of_table)) {
+        deserialize_row(cursor_value(cursor), &row);
         print_row(&row);
+        cursor_advance(cursor);
+        num_entries++;
     }
+    free(cursor);
     char msg[200];
-    sprintf(msg, "found %s%d %s entries.", BGRN, table->num_rows, CRESET);
+    sprintf(msg, "found %s%d%s entries.", BGRN, num_entries, COLOR_RESET);
     ResultData data = { .info = { .message = msg}};
     return new_result(INFO, data);
 }
