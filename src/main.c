@@ -40,6 +40,7 @@ Result* handler(Command command, Table *table)
     switch (command.type)
     {
     case EXIT:
+        db_close(table);
         exit(command.data.exitCommand.code);
         break;
     case SELECT:
@@ -73,7 +74,11 @@ Result* handler(Command command, Table *table)
 
 int main(int argc, char *argv[])
 {
-    Table *table = new_table();
+    if (argc < 2) {
+        printf("USAGE: sqlitec <filepath>\n");
+        exit(EXIT_FAILURE);
+    }
+    char* filename = argv[1];
+    Table* table = db_open(filename);
     start(handler, table);
-    free_table(table);
 }
